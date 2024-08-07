@@ -9,7 +9,7 @@ body {
 
 button {
     padding: 10px;
-    background-color: #1679AB;
+    background-color: #387F39;
     color: #fff;
     border: none;
     border-radius: 4px;
@@ -21,16 +21,16 @@ button {
 }
 
 button:hover {
-    background-color: #1679AB;
+    background-color: #387F39;
 }
 
 button#resetButton {
-    background-color: #ff4a4a;
+    background-color: #ff6868;
     margin-bottom: 15px;
 }
 
 button#resetButton:hover {
-    background-color: #ff4a4a;
+    background-color: #ff6868;
 }
 
 label {
@@ -50,7 +50,7 @@ h1.app-name {
     text-align: center;
     margin: 0;
     padding: 0;
-    color: #1679AB;
+    color: #387F39;
 }
 
 .radio-group {
