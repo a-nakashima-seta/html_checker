@@ -108,16 +108,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
         updateChecklist();
         toggleCheckboxes(false);
-        location.reload()
+        location.reload();
     }
 
-    function getPageTitle(callback) {
+    function getPageSourceCode(callback) {
         chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
             if (tabs.length > 0) {
                 chrome.scripting.executeScript(
                     {
                         target: { tabId: tabs[0].id },
-                        func: () => document.title
+                        func: () => document.documentElement.innerHTML
                     },
                     results => callback(results?.[0]?.result ?? null)
                 );
@@ -127,19 +127,43 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function handleCheckSelected() {
-        const checklistType = ELEMENTS.mailOption.checked ? 'mail' : 'web';
-        const titleItemId = `check_${escapeId('タイトルは正しいか')}`;
-        const titleCorrect = document.getElementById(titleItemId)?.checked;
+    function checkMailContent(pageSource) {
+        const applicationNo = localStorage.getItem('applicationNo');
+        const applicationNoPattern = new RegExp(`SET @application_no = '${applicationNo}'`);
 
-        if (titleCorrect) {
-            getPageTitle(pageTitle => {
-                const storedTitle = localStorage.getItem('title');
-                alert(pageTitle === storedTitle ? 'チェックOK!' : 'タイトルに誤りがあります');
-            });
+        if (applicationNoPattern.test(pageSource)) {
+            alert('チェックOK!');
         } else {
-            alert('「タイトルは正しいか」にチェックがついていません。');
+            alert('冒頭変数が存在しないか申込番号に誤りがあります。');
         }
+    }
+
+    function checkWebContent(pageSource) {
+        const applicationNo = localStorage.getItem('applicationNo');
+        const applicationNoPattern = new RegExp(`SET @application_no = '${applicationNo}'`);
+
+        if (!applicationNoPattern.test(pageSource)) {
+            alert('チェックOK!');
+        } else {
+            alert('冒頭変数を削除してください。');
+        }
+    }
+
+    function handleCheckSelected() {
+        getPageSourceCode(pageSource => {
+            const checklistType = ELEMENTS.mailOption.checked ? 'mail' : 'web';
+            const itemToCheck = checklistType === 'mail' ? '冒頭に変数があり、正しい申込番号が入っているか' : '冒頭に変数はないか';
+            const itemToCheckId = `check_${escapeId(itemToCheck)}`;
+            const itemChecked = document.getElementById(itemToCheckId)?.checked;
+
+            if (itemChecked) {
+                if (checklistType === 'mail') {
+                    checkMailContent(pageSource);
+                } else if (checklistType === 'web') {
+                    checkWebContent(pageSource);
+                }
+            }
+        });
     }
 
     ELEMENTS.setValuesButton.addEventListener('click', () => {
