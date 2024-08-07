@@ -1,106 +1,120 @@
-document.addEventListener('DOMContentLoaded', function () {
-    const applicationNoInput = document.getElementById('applicationNo');
-    const preheaderInput = document.getElementById('preheader');
-    const titleInput = document.getElementById('title');
-    const setValuesButton = document.getElementById('setValues');
-    const outputArea = document.getElementById('outputArea');
-    const checklistArea = document.getElementById('checklistArea');
-    const mailOption = document.getElementById('mailOption');
-    const webOption = document.getElementById('webOption');
-    const checkAllButton = document.getElementById('checkAll');
-    const checkSelectedButton = document.getElementById('checkSelected');
-    const resetButton = document.getElementById('resetButton');
+// popup.js
+document.addEventListener('DOMContentLoaded', () => {
+    const ELEMENTS = {
+        applicationNoInput: document.getElementById('applicationNo'),
+        preheaderInput: document.getElementById('preheader'),
+        titleInput: document.getElementById('title'),
+        setValuesButton: document.getElementById('setValues'),
+        outputArea: document.getElementById('outputArea'),
+        checklistArea: document.getElementById('checklistArea'),
+        mailOption: document.getElementById('mailOption'),
+        webOption: document.getElementById('webOption'),
+        checkAllButton: document.getElementById('checkAll'),
+        checkSelectedButton: document.getElementById('checkSelected'),
+        resetButton: document.getElementById('resetButton')
+    };
 
-    // ローカルストレージからデータを読み込む
+    const CHECKLIST_ITEMS = {
+        mail: [
+            'タイトルは正しいか',
+            'プリヘッダーは正しいか',
+            '冒頭に変数があり、正しい申込番号が入っているか',
+            '画像のリンク切れはないか',
+            '$$$utm_campaign$$$がないか',
+            '※画像がうまく表示されない方はこちらがあるか',
+            'bodyタグ直下に開封タグはあるか'
+        ],
+        web: [
+            'タイトルは正しいか',
+            'プリヘッダーはないか',
+            '冒頭に変数はないか',
+            '画像のリンク切れはないか',
+            '$$$utm_campaign$$$がないか',
+            '※画像がうまく表示されない方はこちらをご覧ください。はないか',
+            '開封タグはないか',
+            'ウェブページのタイトルを確認',
+            'noindexの記述はあるか'
+        ]
+    };
+
     function loadValues() {
         const applicationNo = localStorage.getItem('applicationNo') || '';
         const preheader = localStorage.getItem('preheader') || '';
         const title = localStorage.getItem('title') || '';
 
-        applicationNoInput.value = applicationNo;
-        preheaderInput.value = preheader;
-        titleInput.value = title;
+        ELEMENTS.applicationNoInput.value = applicationNo;
+        ELEMENTS.preheaderInput.value = preheader;
+        ELEMENTS.titleInput.value = title;
 
-        outputArea.innerHTML = `
-            <strong>申込番号:</strong> ${applicationNo}<br>
-            <strong>プリヘッダー:</strong> ${preheader}<br>
-            <strong>タイトル:</strong> ${title}<br>
-        `;
+        updateOutputArea(applicationNo, preheader, title);
     }
 
-    // 入力されたデータをローカルストレージに保存する
     function saveValues() {
-        const applicationNo = applicationNoInput.value;
-        const preheader = preheaderInput.value;
-        const title = titleInput.value;
+        const applicationNo = ELEMENTS.applicationNoInput.value;
+        const preheader = ELEMENTS.preheaderInput.value;
+        const title = ELEMENTS.titleInput.value;
 
         localStorage.setItem('applicationNo', applicationNo);
         localStorage.setItem('preheader', preheader);
         localStorage.setItem('title', title);
     }
 
-    // チェックリストを更新する
-    function updateChecklist() {
-        let checklistItems = [];
-
-        if (mailOption.checked) {
-            checklistItems = [
-                'タイトルは正しいか',
-                'プリヘッダーは正しいか',
-                '冒頭に変数があり、正しい申込番号が入っているか',
-                '画像のリンク切れはないか',
-                '$$$utm_campaign$$$がないか',
-                '※画像がうまく表示されない方はこちらがあるか',
-                'bodyタグ直下に開封タグはあるか'
-            ];
-        } else if (webOption.checked) {
-            checklistItems = [
-                'タイトルは正しいか',
-                'プリヘッダーはないか',
-                '冒頭に変数はないか',
-                '画像のリンク切れはないか',
-                '$$$utm_campaign$$$がないか',
-                '※画像がうまく表示されない方はこちらをご覧ください。はないか',
-                '開封タグはないか',
-                'ウェブページのタイトルを確認',
-                'noindexの記述はあるか'
-            ];
-        }
-
-        checklistArea.innerHTML = '<ul>' +
-            checklistItems.map(item => `
-                <li>
-                    <input type="checkbox" id="${item.replace(/ /g, '_')}" />
-                    <label for="${item.replace(/ /g, '_')}">${item}</label>
-                </li>
-            `).join('') +
-            '</ul>';
+    function updateOutputArea(applicationNo, preheader, title) {
+        ELEMENTS.outputArea.innerHTML = `
+            <strong>申込番号:</strong> ${applicationNo}<br>
+            <strong>プリヘッダー:</strong> ${preheader}<br>
+            <strong>タイトル:</strong> ${title}<br>
+        `;
     }
 
-    // ボタンクリックで値を保存して表示
-    setValuesButton.addEventListener('click', function () {
+    function generateChecklistItems(items) {
+        return items.map(item => `
+            <li>
+                <input type="checkbox" id="${item.replace(/ /g, '_')}" />
+                <label for="${item.replace(/ /g, '_')}">${item}</label>
+            </li>
+        `).join('');
+    }
+
+    function updateChecklist() {
+        const checklistType = ELEMENTS.mailOption.checked ? 'mail' : 'web';
+        const checklistItems = CHECKLIST_ITEMS[checklistType];
+        ELEMENTS.checklistArea.innerHTML = `<ul>${generateChecklistItems(checklistItems)}</ul>`;
+    }
+
+    function toggleCheckboxes(checked) {
+        document.querySelectorAll('#checklistArea input[type="checkbox"]').forEach(checkbox => {
+            checkbox.checked = checked;
+        });
+    }
+
+    function resetForm() {
+        ELEMENTS.applicationNoInput.value = '';
+        ELEMENTS.preheaderInput.value = '';
+        ELEMENTS.titleInput.value = '';
+        ELEMENTS.mailOption.checked = true;
+        ELEMENTS.webOption.checked = false;
+
+        updateChecklist();
+        toggleCheckboxes(false);
+        ELEMENTS.outputArea.style.display = 'none';
+    }
+
+    ELEMENTS.setValuesButton.addEventListener('click', () => {
         saveValues();
-        outputArea.innerHTML = `
-            <strong>申込番号:</strong> ${applicationNoInput.value}<br>
-            <strong>プリヘッダー:</strong> ${preheaderInput.value}<br>
-            <strong>タイトル:</strong> ${titleInput.value}<br>
-        `;
+        updateOutputArea(
+            ELEMENTS.applicationNoInput.value,
+            ELEMENTS.preheaderInput.value,
+            ELEMENTS.titleInput.value
+        );
     });
 
-    // ラジオボタンの変更でチェックリストを更新
     document.querySelectorAll('input[name="checkType"]').forEach(radio => {
         radio.addEventListener('change', updateChecklist);
     });
 
-    // 全てのチェックボックスをチェックする
-    checkAllButton.addEventListener('click', function () {
-        document.querySelectorAll('#checklistArea input[type="checkbox"]').forEach(checkbox => {
-            checkbox.checked = true;
-        });
-    });
-
-    // 選択した項目のチェックボックスをチェックする
-    checkSelectedButton.addEventListener('click', function () {
+    ELEMENTS.checkAllButton.addEventListener('click', () => toggleCheckboxes(true));
+    ELEMENTS.checkSelectedButton.addEventListener('click', () => {
         document.querySelectorAll('#checklistArea input[type="checkbox"]').forEach(checkbox => {
             if (checkbox.checked) {
                 checkbox.checked = true;
@@ -108,32 +122,8 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    // リセットボタンで初期状態に戻す
-    resetButton.addEventListener('click', function () {
-        applicationNoInput.value = '';
-        preheaderInput.value = '';
-        titleInput.value = '';
-        localStorage.setItem('applicationNo', applicationNoInput.value);
-        localStorage.setItem('preheader', preheaderInput.value);
-        localStorage.setItem('title', titleInput.value);
-        mailOption.checked = true;
-        webOption.checked = false;
+    ELEMENTS.resetButton.addEventListener('click', resetForm);
 
-        // チェックリストを mail 用のリストで再生成
-        updateChecklist();
-
-        // チェックリスト内のチェックボックスを全てオフにする
-        document.querySelectorAll('#checklistArea input[type="checkbox"]').forEach(checkbox => {
-            checkbox.checked = false;
-        });
-
-        // outputArea を非表示にする
-        // outputArea.style.display = 'none';
-        location.reload()
-    });
-
-    // ポップアップが開かれたときに値を読み込む
     loadValues();
-    // 初期表示のチェックリストを更新
     updateChecklist();
 });
