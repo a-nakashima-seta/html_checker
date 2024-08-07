@@ -37,7 +37,10 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     function escapeId(id) {
-        return id.replace(/[^a-zA-Z0-9_-]/g, '_');
+        return id
+            .toLowerCase()
+            .replace(/[^a-z0-9_-]/g, '')
+            .substring(0, 50);
     }
 
     function loadValues() {
@@ -71,9 +74,9 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
     }
 
-    function generateChecklistItems(items) {
+    function generateChecklistItems(items, type) {
         return items.map((item, index) => {
-            const id = `check_${escapeId(item)}`;
+            const id = `${type}_check_${index}_${escapeId(item)}`;
             return `
                 <li>
                     <input type="checkbox" id="${id}" />
@@ -86,7 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateChecklist() {
         const checklistType = ELEMENTS.mailOption.checked ? 'mail' : 'web';
         const checklistItems = CHECKLIST_ITEMS[checklistType];
-        ELEMENTS.checklistArea.innerHTML = `<ul>${generateChecklistItems(checklistItems)}</ul>`;
+        ELEMENTS.checklistArea.innerHTML = `<ul>${generateChecklistItems(checklistItems, checklistType)}</ul>`;
     }
 
     function toggleCheckboxes(checked) {
@@ -153,7 +156,7 @@ document.addEventListener('DOMContentLoaded', () => {
         getPageSourceCode(pageSource => {
             const checklistType = ELEMENTS.mailOption.checked ? 'mail' : 'web';
             const itemToCheck = checklistType === 'mail' ? '冒頭に変数があり、正しい申込番号が入っているか' : '冒頭に変数はないか';
-            const itemToCheckId = `check_${escapeId(itemToCheck)}`;
+            const itemToCheckId = `${checklistType}_check_${CHECKLIST_ITEMS[checklistType].indexOf(itemToCheck)}_${escapeId(itemToCheck)}`;
             const itemChecked = document.getElementById(itemToCheckId)?.checked;
 
             if (itemChecked) {
