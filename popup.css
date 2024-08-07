@@ -9,7 +9,7 @@ body {
 
 button {
     padding: 10px;
-    background-color: #007bff;
+    background-color: #1679AB;
     color: #fff;
     border: none;
     border-radius: 4px;
@@ -21,16 +21,16 @@ button {
 }
 
 button:hover {
-    background-color: #0056b3;
+    background-color: #1679AB;
 }
 
 button#resetButton {
-    background-color: #dc3545;
+    background-color: #ff4a4a;
     margin-bottom: 15px;
 }
 
 button#resetButton:hover {
-    background-color: #c82333;
+    background-color: #ff4a4a;
 }
 
 label {
@@ -44,6 +44,13 @@ input[type="text"] {
     border: 1px solid #ddd;
     border-radius: 4px;
     box-sizing: border-box;
+}
+
+h1.app-name {
+    text-align: center;
+    margin: 0;
+    padding: 0;
+    color: #1679AB;
 }
 
 .radio-group {

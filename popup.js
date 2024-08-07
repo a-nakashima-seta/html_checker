@@ -113,6 +113,9 @@ document.addEventListener('DOMContentLoaded', function () {
         applicationNoInput.value = '';
         preheaderInput.value = '';
         titleInput.value = '';
+        localStorage.setItem('applicationNo', applicationNoInput.value);
+        localStorage.setItem('preheader', preheaderInput.value);
+        localStorage.setItem('title', titleInput.value);
         mailOption.checked = true;
         webOption.checked = false;
 
@@ -125,7 +128,8 @@ document.addEventListener('DOMContentLoaded', function () {
         });
 
         // outputArea を非表示にする
-        outputArea.style.display = 'none';
+        // outputArea.style.display = 'none';
+        location.reload()
     });
 
     // ポップアップが開かれたときに値を読み込む
