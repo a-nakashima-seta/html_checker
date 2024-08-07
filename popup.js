@@ -37,33 +37,33 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     function escapeId(id) {
-        // id に使えない文字を変換
         return id.replace(/[^a-zA-Z0-9_-]/g, '_');
     }
 
     function loadValues() {
-        const applicationNo = localStorage.getItem('applicationNo') || '';
-        const preheader = localStorage.getItem('preheader') || '';
-        const title = localStorage.getItem('title') || '';
+        const values = {
+            applicationNo: localStorage.getItem('applicationNo') || '',
+            preheader: localStorage.getItem('preheader') || '',
+            title: localStorage.getItem('title') || ''
+        };
 
-        ELEMENTS.applicationNoInput.value = applicationNo;
-        ELEMENTS.preheaderInput.value = preheader;
-        ELEMENTS.titleInput.value = title;
+        Object.keys(values).forEach(key => {
+            ELEMENTS[`${key}Input`].value = values[key];
+        });
 
-        updateOutputArea(applicationNo, preheader, title);
+        updateOutputArea(values);
     }
 
     function saveValues() {
-        const applicationNo = ELEMENTS.applicationNoInput.value;
-        const preheader = ELEMENTS.preheaderInput.value;
-        const title = ELEMENTS.titleInput.value;
-
-        localStorage.setItem('applicationNo', applicationNo);
-        localStorage.setItem('preheader', preheader);
-        localStorage.setItem('title', title);
+        Object.keys(ELEMENTS).forEach(key => {
+            if (key.endsWith('Input')) {
+                const localStorageKey = key.replace('Input', '');
+                localStorage.setItem(localStorageKey, ELEMENTS[key].value);
+            }
+        });
     }
 
-    function updateOutputArea(applicationNo, preheader, title) {
+    function updateOutputArea({ applicationNo, preheader, title }) {
         ELEMENTS.outputArea.innerHTML = `
             <strong>申込番号:</strong> ${applicationNo}<br>
             <strong>プリヘッダー:</strong> ${preheader}<br>
@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function generateChecklistItems(items) {
         return items.map((item, index) => {
-            const id = `check_${index + 1}`; // 一意なIDをインデックスで生成
+            const id = `check_${escapeId(item)}`;
             return `
                 <li>
                     <input type="checkbox" id="${id}" />
@@ -96,30 +96,59 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function resetForm() {
-        ELEMENTS.applicationNoInput.value = '';
-        ELEMENTS.preheaderInput.value = '';
-        ELEMENTS.titleInput.value = '';
-        localStorage.setItem('applicationNo', '');
-        localStorage.setItem('preheader', '');
-        localStorage.setItem('title', '');
+        Object.keys(ELEMENTS).forEach(key => {
+            if (key.endsWith('Input')) {
+                ELEMENTS[key].value = '';
+            }
+        });
+
+        localStorage.clear();
         ELEMENTS.mailOption.checked = true;
         ELEMENTS.webOption.checked = false;
 
         updateChecklist();
         toggleCheckboxes(false);
-        location.reload();
+        location.reload()
     }
 
+    function getPageTitle(callback) {
+        chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
+            if (tabs.length > 0) {
+                chrome.scripting.executeScript(
+                    {
+                        target: { tabId: tabs[0].id },
+                        func: () => document.title
+                    },
+                    results => callback(results?.[0]?.result ?? null)
+                );
+            } else {
+                callback(null);
+            }
+        });
+    }
 
+    function handleCheckSelected() {
+        const checklistType = ELEMENTS.mailOption.checked ? 'mail' : 'web';
+        const titleItemId = `check_${escapeId('タイトルは正しいか')}`;
+        const titleCorrect = document.getElementById(titleItemId)?.checked;
 
+        if (titleCorrect) {
+            getPageTitle(pageTitle => {
+                const storedTitle = localStorage.getItem('title');
+                alert(pageTitle === storedTitle ? 'チェックOK!' : 'タイトルに誤りがあります');
+            });
+        } else {
+            alert('「タイトルは正しいか」にチェックがついていません。');
+        }
+    }
 
     ELEMENTS.setValuesButton.addEventListener('click', () => {
         saveValues();
-        updateOutputArea(
-            ELEMENTS.applicationNoInput.value,
-            ELEMENTS.preheaderInput.value,
-            ELEMENTS.titleInput.value
-        );
+        updateOutputArea({
+            applicationNo: ELEMENTS.applicationNoInput.value,
+            preheader: ELEMENTS.preheaderInput.value,
+            title: ELEMENTS.titleInput.value
+        });
     });
 
     document.querySelectorAll('input[name="checkType"]').forEach(radio => {
@@ -127,6 +156,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     ELEMENTS.checkAllButton.addEventListener('click', () => toggleCheckboxes(true));
+    ELEMENTS.checkSelectedButton.addEventListener('click', handleCheckSelected);
     ELEMENTS.resetButton.addEventListener('click', resetForm);
 
     loadValues();
