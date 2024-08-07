@@ -89,15 +89,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function resetForm() {
-        ELEMENTS.applicationNoInput.value = '';
-        ELEMENTS.preheaderInput.value = '';
-        ELEMENTS.titleInput.value = '';
+        const applicationNo = ELEMENTS.applicationNoInput.value = '';
+        const preheader = ELEMENTS.preheaderInput.value = '';
+        const title = ELEMENTS.titleInput.value = '';
+        localStorage.setItem('applicationNo', applicationNo);
+        localStorage.setItem('preheader', preheader);
+        localStorage.setItem('title', title);
         ELEMENTS.mailOption.checked = true;
         ELEMENTS.webOption.checked = false;
 
         updateChecklist();
         toggleCheckboxes(false);
-        ELEMENTS.outputArea.style.display = 'none';
+        location.reload()
+
     }
 
     ELEMENTS.setValuesButton.addEventListener('click', () => {
