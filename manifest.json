@@ -4,7 +4,8 @@
     "version": "1.0",
     "description": "Check if a specific string exists in the HTML source.",
     "permissions": [
-        "activeTab"
+        "activeTab",
+        "scripting"
     ],
     "background": {
         "service_worker": "background.js"

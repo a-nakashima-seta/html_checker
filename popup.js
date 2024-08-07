@@ -1,4 +1,3 @@
-// popup.js
 document.addEventListener('DOMContentLoaded', () => {
     const ELEMENTS = {
         applicationNoInput: document.getElementById('applicationNo'),
@@ -37,6 +36,11 @@ document.addEventListener('DOMContentLoaded', () => {
         ]
     };
 
+    function escapeId(id) {
+        // id に使えない文字を変換
+        return id.replace(/[^a-zA-Z0-9_-]/g, '_');
+    }
+
     function loadValues() {
         const applicationNo = localStorage.getItem('applicationNo') || '';
         const preheader = localStorage.getItem('preheader') || '';
@@ -68,12 +72,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function generateChecklistItems(items) {
-        return items.map(item => `
-            <li>
-                <input type="checkbox" id="${item.replace(/ /g, '_')}" />
-                <label for="${item.replace(/ /g, '_')}">${item}</label>
-            </li>
-        `).join('');
+        return items.map((item, index) => {
+            const id = `check_${index + 1}`; // 一意なIDをインデックスで生成
+            return `
+                <li>
+                    <input type="checkbox" id="${id}" />
+                    <label for="${id}">${item}</label>
+                </li>
+            `;
+        }).join('');
     }
 
     function updateChecklist() {
@@ -89,20 +96,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function resetForm() {
-        const applicationNo = ELEMENTS.applicationNoInput.value = '';
-        const preheader = ELEMENTS.preheaderInput.value = '';
-        const title = ELEMENTS.titleInput.value = '';
-        localStorage.setItem('applicationNo', applicationNo);
-        localStorage.setItem('preheader', preheader);
-        localStorage.setItem('title', title);
+        ELEMENTS.applicationNoInput.value = '';
+        ELEMENTS.preheaderInput.value = '';
+        ELEMENTS.titleInput.value = '';
+        localStorage.setItem('applicationNo', '');
+        localStorage.setItem('preheader', '');
+        localStorage.setItem('title', '');
         ELEMENTS.mailOption.checked = true;
         ELEMENTS.webOption.checked = false;
 
         updateChecklist();
         toggleCheckboxes(false);
-        location.reload()
-
+        location.reload();
     }
+
+
+
 
     ELEMENTS.setValuesButton.addEventListener('click', () => {
         saveValues();
@@ -118,14 +127,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     ELEMENTS.checkAllButton.addEventListener('click', () => toggleCheckboxes(true));
-    ELEMENTS.checkSelectedButton.addEventListener('click', () => {
-        document.querySelectorAll('#checklistArea input[type="checkbox"]').forEach(checkbox => {
-            if (checkbox.checked) {
-                checkbox.checked = true;
-            }
-        });
-    });
-
     ELEMENTS.resetButton.addEventListener('click', resetForm);
 
     loadValues();

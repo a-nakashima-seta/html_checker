@@ -25,12 +25,12 @@ button:hover {
 }
 
 button#resetButton {
-    background-color: #ff6868;
+    background-color: #ff8c2d;
     margin-bottom: 15px;
 }
 
 button#resetButton:hover {
-    background-color: #ff6868;
+    background-color: #ff8c2d;
 }
 
 label {
