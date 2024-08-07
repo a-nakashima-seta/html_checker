@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>String Checker</title>
+    <link rel="stylesheet" href="popup.css">
+</head>
+
+<body>
+    <!-- リセットボタン -->
+    <button id="resetButton">リセット</button>
+
+
+    <!-- 入力欄の追加 -->
+    <div>
+        <label for="applicationNo">申込番号:</label>
+        <input type="text" id="applicationNo">
+        <label for="preheader">プリヘッダー:</label>
+        <input type="text" id="preheader">
+        <label for="title">タイトル:</label>
+        <input type="text" id="title">
+        <button id="setValues">値を設定する</button>
+    </div>
+
+    <!-- チェックオプション -->
+    <div class="radio-group">
+        <input type="radio" id="mailOption" name="checkType" value="mail" checked />
+        <label for="mailOption">Mail用</label>
+        <input type="radio" id="webOption" name="checkType" value="web" />
+        <label for="webOption">Web確認用</label>
+    </div>
+
+    <!-- 設定された値を表示する領域 -->
+    <div class="output" id="outputArea">
+        <!-- ここに値が表示されます -->
+    </div>
+
+    <!-- チェックリスト表示エリア -->
+    <div class="checklist" id="checklistArea">
+        <!-- ここにチェックリストが表示されます -->
+    </div>
+
+    <!-- ボタンエリア -->
+
+    <button id="checkSelected">選択した項目をチェック</button>
+    <button id="checkAll">全てチェック</button>
+
+
+    <script src="popup.js" defer></script>
+</body>
+
+</html>
