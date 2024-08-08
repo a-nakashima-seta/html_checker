@@ -266,6 +266,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+
     function handleCheckSelected() {
         getPageSourceCode(pageSource => {
             if (pageSource) {
