@@ -61,10 +61,12 @@ h1.app-name {
 
 .radio-group input[type="radio"] {
     margin-right: 5px;
+    margin-top: 0;
 }
 
 .radio-group label {
     margin-right: 15px;
+    font-size: 18px;
 }
 
 .output {

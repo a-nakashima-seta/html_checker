@@ -217,6 +217,22 @@ document.addEventListener('DOMContentLoaded', () => {
         return utmCampaignPattern.test(pageSource) ? '・$$$utm_campaign$$$が存在します' : null;
     }
 
+    function checkForSpecialText(pageSource) {
+        const isMail = ELEMENTS.mailOption.checked;
+        const specialText = '※画像がうまく表示されない方はこちら';
+
+        const textPattern = new RegExp(specialText, 'i');
+        const textExists = textPattern.test(pageSource);
+
+        if (isMail) {
+            // Mail用チェック
+            return textExists ? null : `・${specialText}を追加してください`;
+        } else {
+            // Web用チェック
+            return textExists ? `・${specialText}は削除してください` : null;
+        }
+    }
+
     async function performChecks(pageSource) {
         const checklistType = ELEMENTS.mailOption.checked ? 'mail' : 'web';
         const checklistItems = CHECKLIST_ITEMS[checklistType];
@@ -246,7 +262,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     case '$$$utm_campaign$$$がないか':
                         error = checkUTMCampaign(pageSource);
                         break;
-                    // 他のチェック項目が追加された場合、ここにケースを追加
+                    case '※画像がうまく表示されない方はこちらがあるか':
+                    case '※画像がうまく表示されない方はこちらはないか':
+                        error = checkForSpecialText(pageSource);
+                        break;
                     default:
                         break;
                 }
@@ -265,7 +284,6 @@ document.addEventListener('DOMContentLoaded', () => {
             alert('OKです!');
         }
     }
-
 
     function handleCheckSelected() {
         getPageSourceCode(pageSource => {
