@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
             '$$$utm_campaign$$$がないか',
             '※画像がうまく表示されない方はこちらはないか',
             '開封タグはないか',
-            'noindexの記述はあるか'
+            'noindexの記述はあるか' // ここに追加
         ]
     };
 
@@ -233,6 +233,26 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function checkNoIndexMetaTag(pageSource) {
+        // コメントアウトされた内容も検出するために、コメント部分も含めて検索する
+        const metaTagPattern = /<!--.*?<meta\s+name=["']robots["']\s+content=["']noindex["']\s*\/?>.*?-->/is;
+        const noIndexPattern = /<meta\s+name=["']robots["']\s+content=["']noindex["']\s*\/?>/i;
+
+        // コメントアウトされたタグと非コメントアウトタグの両方を検出
+        const noIndexInComments = metaTagPattern.test(pageSource);
+        const noIndexInCode = noIndexPattern.test(pageSource);
+
+        if (ELEMENTS.webOption.checked) {
+            // Web用チェック
+            return noIndexInCode || noIndexInComments
+                ? null
+                : '・noindexの記述がありません。head内に<meta name="robots" content="noindex">を追加してください';
+        } else {
+            return null;
+        }
+    }
+
+
     async function performChecks(pageSource) {
         const checklistType = ELEMENTS.mailOption.checked ? 'mail' : 'web';
         const checklistItems = CHECKLIST_ITEMS[checklistType];
@@ -258,13 +278,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     case '画像のリンク切れはないか':
                         const imageErrors = await checkImageLinks(pageSource);
                         errors.push(...imageErrors);
-                        return; // checkImageLinks は async なのでここで return する
+                        return;
                     case '$$$utm_campaign$$$がないか':
                         error = checkUTMCampaign(pageSource);
                         break;
                     case '※画像がうまく表示されない方はこちらがあるか':
                     case '※画像がうまく表示されない方はこちらはないか':
                         error = checkForSpecialText(pageSource);
+                        break;
+                    case 'noindexの記述はあるか':
+                        error = checkNoIndexMetaTag(pageSource);
                         break;
                     default:
                         break;
