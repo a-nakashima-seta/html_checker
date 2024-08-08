@@ -29,9 +29,8 @@ document.addEventListener('DOMContentLoaded', () => {
             '冒頭に変数はないか',
             '画像のリンク切れはないか',
             '$$$utm_campaign$$$がないか',
-            '※画像がうまく表示されない方はこちらをご覧ください。はないか',
+            '※画像がうまく表示されない方はこちらはないか',
             '開封タグはないか',
-            'ウェブページのタイトルを確認',
             'noindexの記述はあるか'
         ]
     };
@@ -135,13 +134,13 @@ document.addEventListener('DOMContentLoaded', () => {
     function checkMailApplicationNo(pageSource) {
         const applicationNo = localStorage.getItem('applicationNo');
         const applicationNoPattern = new RegExp(`SET @application_no = '${applicationNo}'`);
-        return applicationNoPattern.test(pageSource) ? null : '冒頭変数または申込番号に誤りがあります';
+        return applicationNoPattern.test(pageSource) ? null : '・冒頭変数または申込番号に誤りがあります';
     }
 
     function checkWebApplicationNo(pageSource) {
         const applicationNo = localStorage.getItem('applicationNo');
         const applicationNoPattern = new RegExp(`SET @application_no = '${applicationNo}'`);
-        return !applicationNoPattern.test(pageSource) ? null : '冒頭変数を削除してください';
+        return !applicationNoPattern.test(pageSource) ? null : '・冒頭変数を削除してください';
     }
 
     function checkPageTitle(pageSource) {
@@ -151,7 +150,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const titleMatch = pageSource.match(/<title>([^<]*)<\/title>/i);
         const pageTitle = titleMatch ? titleMatch[1] : '';
 
-        return title === pageTitle ? null : 'タイトルに誤りがあります';
+        return title === pageTitle ? null : '・タイトルに誤りがあります';
     }
 
     function checkImageLinks(pageSource) {
@@ -172,7 +171,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const src = img.getAttribute('src');
 
                 if (!src) {
-                    errors.push(`画像${index + 1}のsrc属性が空です。`);
+                    errors.push(`・画像${index + 1}のsrc属性が空です。`);
                     loadedImages++;
                     if (loadedImages === totalImages) {
                         errors.sort();
@@ -202,7 +201,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 };
                 imgElement.onerror = () => {
-                    errors.push(`画像${index + 1}（URL: ${src}）がリンク切れです。`);
+                    errors.push(`・画像${index + 1}（URL: ${src}）がリンク切れです。`);
                     loadedImages++;
                     if (loadedImages === totalImages) {
                         errors.sort();
@@ -211,6 +210,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 };
             });
         });
+    }
+
+    function checkUTMCampaign(pageSource) {
+        const utmCampaignPattern = /\$\$\$utm_campaign\$\$\$/;
+        return utmCampaignPattern.test(pageSource) ? '・$$$utm_campaign$$$が存在します' : null;
     }
 
     async function performChecks(pageSource) {
@@ -239,6 +243,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         const imageErrors = await checkImageLinks(pageSource);
                         errors.push(...imageErrors);
                         return; // checkImageLinks は async なのでここで return する
+                    case '$$$utm_campaign$$$がないか':
+                        error = checkUTMCampaign(pageSource);
+                        break;
                     // 他のチェック項目が追加された場合、ここにケースを追加
                     default:
                         break;
@@ -255,7 +262,7 @@ document.addEventListener('DOMContentLoaded', () => {
             errors.sort();
             alert(`チェックに失敗しました:\n${errors.join('\n')}`);
         } else {
-            alert('チェックOK!');
+            alert('OKです!');
         }
     }
 

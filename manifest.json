@@ -1,6 +1,6 @@
 {
     "manifest_version": 3,
-    "name": "String Checker",
+    "name": "HTML Checker",
     "version": "1.0",
     "description": "Check if a specific string exists in the HTML source.",
     "permissions": [
