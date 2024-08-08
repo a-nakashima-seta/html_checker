@@ -36,6 +36,8 @@ document.addEventListener('DOMContentLoaded', () => {
         ]
     };
 
+    const EXTERNAL_URL_REGEX = /^https?:\/\/(?!www\.shizensyokuhin\.jp)(?!shizensyokuhin\.jp)(?!www\.s-shizensyokuhin\.jp)(?!s-shizensyokuhin\.jp)/;
+
     function escapeId(id) {
         return id
             .toLowerCase()
@@ -152,13 +154,72 @@ document.addEventListener('DOMContentLoaded', () => {
         return title === pageTitle ? null : 'タイトルに誤りがあります';
     }
 
-    function performChecks(pageSource) {
+    function checkImageLinks(pageSource) {
+        return new Promise((resolve) => {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(pageSource, 'text/html');
+            const images = doc.querySelectorAll('img');
+            const errors = [];
+            const totalImages = images.length;
+            let loadedImages = 0;
+
+            if (totalImages === 0) {
+                resolve(errors);
+                return;
+            }
+
+            images.forEach((img, index) => {
+                const src = img.getAttribute('src');
+
+                if (!src) {
+                    errors.push(`画像${index + 1}のsrc属性が空です。`);
+                    loadedImages++;
+                    if (loadedImages === totalImages) {
+                        errors.sort();
+                        resolve(errors);
+                    }
+                    return;
+                }
+
+                // 外部パスの判別
+                if (EXTERNAL_URL_REGEX.test(src)) {
+                    loadedImages++;
+                    if (loadedImages === totalImages) {
+                        errors.sort();
+                        resolve(errors);
+                    }
+                    return;
+                }
+
+                // 画像が壊れているか確認
+                const imgElement = new Image();
+                imgElement.src = src;
+                imgElement.onload = () => {
+                    loadedImages++;
+                    if (loadedImages === totalImages) {
+                        errors.sort();
+                        resolve(errors);
+                    }
+                };
+                imgElement.onerror = () => {
+                    errors.push(`画像${index + 1}（URL: ${src}）がリンク切れです。`);
+                    loadedImages++;
+                    if (loadedImages === totalImages) {
+                        errors.sort();
+                        resolve(errors);
+                    }
+                };
+            });
+        });
+    }
+
+    async function performChecks(pageSource) {
         const checklistType = ELEMENTS.mailOption.checked ? 'mail' : 'web';
         const checklistItems = CHECKLIST_ITEMS[checklistType];
 
         const errors = [];
 
-        checklistItems.forEach((item, index) => {
+        const checkPromises = checklistItems.map(async (item, index) => {
             const itemId = `${checklistType}_check_${index}_${escapeId(item)}`;
             const itemChecked = document.getElementById(itemId)?.checked;
 
@@ -174,6 +235,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     case 'タイトルは正しいか':
                         error = checkPageTitle(pageSource);
                         break;
+                    case '画像のリンク切れはないか':
+                        const imageErrors = await checkImageLinks(pageSource);
+                        errors.push(...imageErrors);
+                        return; // checkImageLinks は async なのでここで return する
                     // 他のチェック項目が追加された場合、ここにケースを追加
                     default:
                         break;
@@ -184,7 +249,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
+        await Promise.all(checkPromises);
+
         if (errors.length > 0) {
+            errors.sort();
             alert(`チェックに失敗しました:\n${errors.join('\n')}`);
         } else {
             alert('チェックOK!');
@@ -193,7 +261,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function handleCheckSelected() {
         getPageSourceCode(pageSource => {
-            performChecks(pageSource);
+            if (pageSource) {
+                performChecks(pageSource);
+            } else {
+                alert('ページのソースコードを取得できませんでした。');
+            }
         });
     }
 
