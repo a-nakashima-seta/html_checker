@@ -69,8 +69,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateOutputArea({ applicationNo, preheader, title }) {
         ELEMENTS.outputArea.innerHTML = `
             <strong>申込番号:</strong> ${applicationNo}<br>
-            <strong>プリヘッダー:</strong> ${preheader}<br>
             <strong>タイトル:</strong> ${title}<br>
+            <strong>プリヘッダー:</strong> ${preheader}<br>
         `;
     }
 
@@ -130,42 +130,70 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function checkMailContent(pageSource) {
+    function checkMailApplicationNo(pageSource) {
         const applicationNo = localStorage.getItem('applicationNo');
         const applicationNoPattern = new RegExp(`SET @application_no = '${applicationNo}'`);
-
-        if (applicationNoPattern.test(pageSource)) {
-            alert('チェックOK!');
-        } else {
-            alert('冒頭変数が存在しないか申込番号に誤りがあります。');
-        }
+        return applicationNoPattern.test(pageSource) ? null : '冒頭変数または申込番号に誤りがあります';
     }
 
-    function checkWebContent(pageSource) {
+    function checkWebApplicationNo(pageSource) {
         const applicationNo = localStorage.getItem('applicationNo');
         const applicationNoPattern = new RegExp(`SET @application_no = '${applicationNo}'`);
+        return !applicationNoPattern.test(pageSource) ? null : '冒頭変数を削除してください';
+    }
 
-        if (!applicationNoPattern.test(pageSource)) {
-            alert('チェックOK!');
+    function checkPageTitle(pageSource) {
+        const title = localStorage.getItem('title');
+        const titlePattern = new RegExp(`<title>${title}</title>`, 'i');
+
+        const titleMatch = pageSource.match(/<title>([^<]*)<\/title>/i);
+        const pageTitle = titleMatch ? titleMatch[1] : '';
+
+        return title === pageTitle ? null : 'タイトルに誤りがあります';
+    }
+
+    function performChecks(pageSource) {
+        const checklistType = ELEMENTS.mailOption.checked ? 'mail' : 'web';
+        const checklistItems = CHECKLIST_ITEMS[checklistType];
+
+        const errors = [];
+
+        checklistItems.forEach((item, index) => {
+            const itemId = `${checklistType}_check_${index}_${escapeId(item)}`;
+            const itemChecked = document.getElementById(itemId)?.checked;
+
+            if (itemChecked) {
+                let error;
+                switch (item) {
+                    case '冒頭に変数があり、正しい申込番号が入っているか':
+                        error = checkMailApplicationNo(pageSource);
+                        break;
+                    case '冒頭に変数はないか':
+                        error = checkWebApplicationNo(pageSource);
+                        break;
+                    case 'タイトルは正しいか':
+                        error = checkPageTitle(pageSource);
+                        break;
+                    // 他のチェック項目が追加された場合、ここにケースを追加
+                    default:
+                        break;
+                }
+                if (error) {
+                    errors.push(error);
+                }
+            }
+        });
+
+        if (errors.length > 0) {
+            alert(`チェックに失敗しました:\n${errors.join('\n')}`);
         } else {
-            alert('冒頭変数を削除してください。');
+            alert('チェックOK!');
         }
     }
 
     function handleCheckSelected() {
         getPageSourceCode(pageSource => {
-            const checklistType = ELEMENTS.mailOption.checked ? 'mail' : 'web';
-            const itemToCheck = checklistType === 'mail' ? '冒頭に変数があり、正しい申込番号が入っているか' : '冒頭に変数はないか';
-            const itemToCheckId = `${checklistType}_check_${CHECKLIST_ITEMS[checklistType].indexOf(itemToCheck)}_${escapeId(itemToCheck)}`;
-            const itemChecked = document.getElementById(itemToCheckId)?.checked;
-
-            if (itemChecked) {
-                if (checklistType === 'mail') {
-                    checkMailContent(pageSource);
-                } else if (checklistType === 'web') {
-                    checkWebContent(pageSource);
-                }
-            }
+            performChecks(pageSource);
         });
     }
 
