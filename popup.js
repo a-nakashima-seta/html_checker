@@ -31,11 +31,12 @@ document.addEventListener('DOMContentLoaded', () => {
             '$$$utm_campaign$$$がないか',
             '※画像がうまく表示されない方はこちらはないか',
             '開封タグはないか',
-            'noindexの記述はあるか' // ここに追加
+            'noindexの記述はあるか'
         ]
     };
 
     const EXTERNAL_URL_REGEX = /^https?:\/\/(?!www\.shizensyokuhin\.jp)(?!shizensyokuhin\.jp)(?!www\.s-shizensyokuhin\.jp)(?!s-shizensyokuhin\.jp)/;
+    const SPECIAL_TEXT = '※画像がうまく表示されない方はこちら';
 
     function escapeId(id) {
         return id
@@ -61,8 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function saveValues() {
         Object.keys(ELEMENTS).forEach(key => {
             if (key.endsWith('Input')) {
-                const localStorageKey = key.replace('Input', '');
-                localStorage.setItem(localStorageKey, ELEMENTS[key].value);
+                localStorage.setItem(key.replace('Input', ''), ELEMENTS[key].value);
             }
         });
     }
@@ -89,8 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateChecklist() {
         const checklistType = ELEMENTS.mailOption.checked ? 'mail' : 'web';
-        const checklistItems = CHECKLIST_ITEMS[checklistType];
-        ELEMENTS.checklistArea.innerHTML = `<ul>${generateChecklistItems(checklistItems, checklistType)}</ul>`;
+        ELEMENTS.checklistArea.innerHTML = `<ul>${generateChecklistItems(CHECKLIST_ITEMS[checklistType], checklistType)}</ul>`;
     }
 
     function toggleCheckboxes(checked) {
@@ -133,23 +132,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function checkMailApplicationNo(pageSource) {
         const applicationNo = localStorage.getItem('applicationNo');
-        const applicationNoPattern = new RegExp(`SET @application_no = '${applicationNo}'`);
-        return applicationNoPattern.test(pageSource) ? null : '・冒頭変数または申込番号に誤りがあります';
+        const pattern = new RegExp(`SET @application_no = '${applicationNo}'`);
+        return pattern.test(pageSource) ? null : '・冒頭変数または申込番号に誤りがあります';
     }
 
     function checkWebApplicationNo(pageSource) {
         const applicationNo = localStorage.getItem('applicationNo');
-        const applicationNoPattern = new RegExp(`SET @application_no = '${applicationNo}'`);
-        return !applicationNoPattern.test(pageSource) ? null : '・冒頭変数を削除してください';
+        const pattern = new RegExp(`SET @application_no = '${applicationNo}'`);
+        return !pattern.test(pageSource) ? null : '・冒頭変数を削除してください';
     }
 
     function checkPageTitle(pageSource) {
         const title = localStorage.getItem('title');
-        const titlePattern = new RegExp(`<title>${title}</title>`, 'i');
-
+        const pattern = new RegExp(`<title>${title}</title>`, 'i');
         const titleMatch = pageSource.match(/<title>([^<]*)<\/title>/i);
         const pageTitle = titleMatch ? titleMatch[1] : '';
-
         return title === pageTitle ? null : '・タイトルに誤りがあります';
     }
 
@@ -169,7 +166,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             images.forEach((img, index) => {
                 const src = img.getAttribute('src');
-
                 if (!src) {
                     errors.push(`・画像${index + 1}のsrc属性が空です。`);
                     loadedImages++;
@@ -180,7 +176,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     return;
                 }
 
-                // 外部パスの判別
                 if (EXTERNAL_URL_REGEX.test(src)) {
                     loadedImages++;
                     if (loadedImages === totalImages) {
@@ -190,7 +185,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     return;
                 }
 
-                // 画像が壊れているか確認
                 const imgElement = new Image();
                 imgElement.src = src;
                 imgElement.onload = () => {
@@ -213,50 +207,36 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function checkUTMCampaign(pageSource) {
-        const utmCampaignPattern = /\$\$\$utm_campaign\$\$\$/;
-        return utmCampaignPattern.test(pageSource) ? '・$$$utm_campaign$$$が存在します' : null;
+        const pattern = /\$\$\$utm_campaign\$\$\$/;
+        return pattern.test(pageSource) ? '・$$$utm_campaign$$$が存在します' : null;
     }
 
     function checkForSpecialText(pageSource) {
         const isMail = ELEMENTS.mailOption.checked;
-        const specialText = '※画像がうまく表示されない方はこちら';
-
-        const textPattern = new RegExp(specialText, 'i');
+        const textPattern = new RegExp(SPECIAL_TEXT, 'i');
         const textExists = textPattern.test(pageSource);
 
-        if (isMail) {
-            // Mail用チェック
-            return textExists ? null : `・${specialText}を追加してください`;
-        } else {
-            // Web用チェック
-            return textExists ? `・${specialText}は削除してください` : null;
-        }
+        return isMail
+            ? textExists ? null : `・${SPECIAL_TEXT}を追加してください`
+            : textExists ? `・${SPECIAL_TEXT}は削除してください` : null;
     }
 
     function checkNoIndexMetaTag(pageSource) {
-        // コメントアウトされた内容も検出するために、コメント部分も含めて検索する
-        const metaTagPattern = /<!--.*?<meta\s+name=["']robots["']\s+content=["']noindex["']\s*\/?>.*?-->/is;
-        const noIndexPattern = /<meta\s+name=["']robots["']\s+content=["']noindex["']\s*\/?>/i;
+        const commentPattern = /<!--.*?<meta\s+name=["']robots["']\s+content=["']noindex["']\s*\/?>.*?-->/is;
+        const metaPattern = /<meta\s+name=["']robots["']\s+content=["']noindex["']\s*\/?>/i;
+        const noIndexInComments = commentPattern.test(pageSource);
+        const noIndexInCode = metaPattern.test(pageSource);
 
-        // コメントアウトされたタグと非コメントアウトタグの両方を検出
-        const noIndexInComments = metaTagPattern.test(pageSource);
-        const noIndexInCode = noIndexPattern.test(pageSource);
-
-        if (ELEMENTS.webOption.checked) {
-            // Web用チェック
-            return noIndexInCode || noIndexInComments
+        return ELEMENTS.webOption.checked
+            ? (noIndexInCode || noIndexInComments)
                 ? null
-                : '・noindexの記述がありません。head内に<meta name="robots" content="noindex">を追加してください';
-        } else {
-            return null;
-        }
+                : '・noindexの記述がありません。head内に<meta name="robots" content="noindex">を追加してください'
+            : null;
     }
-
 
     async function performChecks(pageSource) {
         const checklistType = ELEMENTS.mailOption.checked ? 'mail' : 'web';
         const checklistItems = CHECKLIST_ITEMS[checklistType];
-
         const errors = [];
 
         const checkPromises = checklistItems.map(async (item, index) => {
@@ -300,15 +280,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
         await Promise.all(checkPromises);
 
-        if (errors.length > 0) {
-            errors.sort();
-            alert(`チェックに失敗しました:\n${errors.join('\n')}`);
-        } else {
-            alert('OKです!');
-        }
+        alert(errors.length > 0 ? `チェックに失敗しました:\n${errors.sort().join('\n')}` : 'OKです!');
     }
 
     function handleCheckSelected() {
+        // 少なくとも1つのチェックリスト項目が選択されているか確認する
+        const selectedItems = document.querySelectorAll('#checklistArea input[type="checkbox"]:checked');
+
+        if (selectedItems.length === 0) {
+            alert('チェック項目を選択してください');
+            return;
+        }
+
+
         getPageSourceCode(pageSource => {
             if (pageSource) {
                 performChecks(pageSource);
