@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
             '画像のリンク切れはないか',
             '$$$utm_campaign$$$がないか',
             '※画像がうまく表示されない方はこちらがあるか',
-            'bodyタグ直下に開封タグはあるか'
+            '開封タグはあるか'
         ],
         web: [
             'タイトルは正しいか',
@@ -256,6 +256,36 @@ document.addEventListener('DOMContentLoaded', () => {
             : '・noindexの記述がありません';
     }
 
+    // 開封タグの確認
+    function checkNoIndexOpenTag(pageSource) {
+        const isMail = ELEMENTS.mailOption.checked;
+        const openTagPattern = /<custom\s+name=["']opencounter["']\s+type=["']tracking["']\s*>/i;
+        const bodyTagPattern = /<body\s+cz-shortcut-listen=["']true["']>/i;
+
+        if (isMail) {
+            // メール版では開封タグが必要
+            const bodyTagMatch = pageSource.match(bodyTagPattern);
+            if (bodyTagMatch) {
+                const bodyTagIndex = bodyTagMatch.index + bodyTagMatch[0].length;
+                const bodyContentAfterTag = pageSource.substring(bodyTagIndex);
+
+                // <body> タグの子要素として <custom name="opencounter" type="tracking"> が含まれているか確認
+                if (!openTagPattern.test(bodyContentAfterTag)) {
+                    return '・開封タグの位置を確認してください';
+                }
+            } else {
+                return '・<body cz-shortcut-listen="true"> タグが存在しません';
+            }
+        } else {
+            // Web版では開封タグが不要
+            if (openTagPattern.test(pageSource)) {
+                return '・開封タグは削除してください';
+            }
+        }
+
+        return null;
+    }
+
 
     // チェックを実行する
     async function performChecks(pageSource) {
@@ -292,6 +322,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         break;
                     case 'noindexの記述はあるか':
                         error = checkNoIndexMetaTag(pageSource);
+                        break;
+                    case '開封タグはあるか':
+                    case '開封タグはないか':
+                        error = checkNoIndexOpenTag(pageSource);
                         break;
                     default:
                         break;
