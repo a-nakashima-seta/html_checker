@@ -23,7 +23,8 @@ document.addEventListener('DOMContentLoaded', () => {
             '画像のリンク切れはないか',
             '$$$utm_campaign$$$がないか',
             '※画像がうまく表示されない方はこちらがあるか',
-            '開封タグはあるか'
+            '開封タグはあるか',
+            'フッターが変数化されているか'
         ],
         web: [
             'タイトルは正しいか',
@@ -33,7 +34,10 @@ document.addEventListener('DOMContentLoaded', () => {
             '$$$utm_campaign$$$がないか',
             '※画像がうまく表示されない方はこちらはないか',
             '開封タグはないか',
-            'noindexの記述はあるか'
+            'noindexの記述はあるか',
+            'フッターが変数化されていないか',
+            'GTM用の記述があるか',
+            'faviconは設定されているか'
         ]
     };
 
