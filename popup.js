@@ -192,15 +192,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     return;
                 }
 
-                if (EXTERNAL_URL_REGEX.test(src)) {
-                    loadedImages++;
-                    if (loadedImages === totalImages) {
-                        errors.sort();
-                        resolve(errors);
-                    }
-                    return;
-                }
-
+                // 外部URLのチェックを含めた画像のリンク切れチェック
                 const imgElement = new Image();
                 imgElement.src = src;
                 imgElement.onload = () => {
@@ -218,9 +210,31 @@ document.addEventListener('DOMContentLoaded', () => {
                         resolve(errors);
                     }
                 };
+
+                // 外部URLのチェックを行う
+                if (EXTERNAL_URL_REGEX.test(src)) {
+                    // 外部URLの場合でもリンク切れチェックを行う
+                    fetch(src, { method: 'HEAD' })
+                        .then(response => {
+                            if (!response.ok) {
+                                errors.push(`・画像${index + 1}（URL: ${src}）がリンク切れです。`);
+                            }
+                        })
+                        .catch(() => {
+                            errors.push(`・画像${index + 1}（URL: ${src}）がリンク切れです。`);
+                        })
+                        .finally(() => {
+                            loadedImages++;
+                            if (loadedImages === totalImages) {
+                                errors.sort();
+                                resolve(errors);
+                            }
+                        });
+                }
             });
         });
     }
+
 
     // $$$utm_campaign$$$の確認
     function checkUTMCampaign(pageSource) {
