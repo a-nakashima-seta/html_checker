@@ -341,6 +341,28 @@ document.addEventListener('DOMContentLoaded', () => {
         return null;
     }
 
+    // Google Tag Manager のチェック
+    function checkGTM(pageSource) {
+        const bodyCloseTagPattern = /<\/body>/i;
+        const gtmTagPattern = /<!--\s*Google Tag Manager\s*-->/i;
+
+        // </body> タグの位置を見つける
+        const bodyCloseTagMatch = pageSource.match(bodyCloseTagPattern);
+        if (!bodyCloseTagMatch) {
+            return '・</body> タグが存在しません';
+        }
+
+        const bodyCloseTagIndex = bodyCloseTagMatch.index;
+        const bodyContentBeforeCloseTag = pageSource.substring(0, bodyCloseTagIndex);
+
+        // Google Tag Manager タグが </body> タグより上にあるかどうかを確認
+        if (gtmTagPattern.test(bodyContentBeforeCloseTag)) {
+            return null; // GTM タグが正しい位置にある
+        } else {
+            return '・GTMの場所を確認してください';
+        }
+    }
+
     // チェックを実行する
     async function performChecks(pageSource) {
         const checklistType = ELEMENTS.mailOption.checked ? 'mail' : 'web';
@@ -384,6 +406,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     case 'フッターが変数化されているか':
                     case 'フッターが変数化されていないか':
                         error = checkFooter(pageSource);
+                        break;
+                    case 'GTM用の記述があるか':
+                        error = checkGTM(pageSource);
                         break;
                     default:
                         break;
