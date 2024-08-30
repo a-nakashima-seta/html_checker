@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
         checkAllButton: document.getElementById('checkAll'),
         checkSelectedButton: document.getElementById('checkSelected'),
         resetButton: document.getElementById('resetButton'),
-        textArea: document.getElementById('textArea')
+        textArea: document.getElementById('textArea'),
     };
 
     // チェックリストの項目
@@ -363,6 +363,33 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // メール用のプリヘッダーの確認
+    function checkMailPreheader(pageSource) {
+        const preheader = localStorage.getItem('preheader');
+        // プリヘッダーの前にある <p> タグを取得する正規表現
+        const preheaderPattern = /<p[^>]*>([\s\S]*?)<\/p>\s*<!--\s*▲\s*プリヘッダー\s*▲\s*-->/i;
+        const match = pageSource.match(preheaderPattern);
+
+        if (match) {
+            const actualPreheader = match[1].trim();
+            return preheader === actualPreheader
+                ? null
+                : '・プリヘッダーに誤りがあります';
+        } else {
+            return '・プリヘッダーが見つかりません';
+        }
+    }
+
+
+    // Web用のプリヘッダーの確認
+    function checkWebPreheader(pageSource) {
+        const preheaderPattern = /<!--\s*▼\s*プリヘッダー\s*▼\s*-->/i;
+        return preheaderPattern.test(pageSource) ? '・プリヘッダーを削除してください' : null;
+    }
+
+
+
+
     // チェックを実行する
     async function performChecks(pageSource) {
         const checklistType = ELEMENTS.mailOption.checked ? 'mail' : 'web';
@@ -384,6 +411,12 @@ document.addEventListener('DOMContentLoaded', () => {
                         break;
                     case 'タイトルは正しいか':
                         error = checkPageTitle(pageSource);
+                        break;
+                    case 'プリヘッダーは正しいか':
+                        error = checkMailPreheader(pageSource);
+                        break;
+                    case 'プリヘッダーはないか':
+                        error = checkWebPreheader(pageSource);
                         break;
                     case '画像のリンク切れはないか':
                         const imageErrors = await checkImageLinks(pageSource);
