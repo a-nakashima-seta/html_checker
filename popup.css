@@ -69,6 +69,10 @@ h1.app-name {
     font-size: 18px;
 }
 
+.extra-checkboxes {
+    display: none;
+}
+
 .output {
     padding: 15px;
     border: 1px solid #ddd;
