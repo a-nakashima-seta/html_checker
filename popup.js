@@ -11,7 +11,8 @@ document.addEventListener('DOMContentLoaded', () => {
         webOption: document.getElementById('webOption'),
         checkAllButton: document.getElementById('checkAll'),
         checkSelectedButton: document.getElementById('checkSelected'),
-        resetButton: document.getElementById('resetButton')
+        resetButton: document.getElementById('resetButton'),
+        textArea: document.getElementById('textArea')
     };
 
     // チェックリストの項目
@@ -43,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 外部URLの正規表現
     const EXTERNAL_URL_REGEX = /^https?:\/\/(?!www\.shizensyokuhin\.jp)(?!shizensyokuhin\.jp)(?!www\.s-shizensyokuhin\.jp)(?!s-shizensyokuhin\.jp)/;
-    const SPECIAL_TEXT = '※画像がうまく表示されない方はこちら';
+    const SPECIAL_TEXT = '※画像がうまく表示されない方はこちらをご覧ください。';
 
     // IDをエスケープする関数
     function escapeId(id) {
@@ -58,14 +59,20 @@ document.addEventListener('DOMContentLoaded', () => {
         const values = {
             applicationNo: localStorage.getItem('applicationNo') || '',
             preheader: localStorage.getItem('preheader') || '',
-            title: localStorage.getItem('title') || ''
+            title: localStorage.getItem('title') || '',
+            htmlContent: localStorage.getItem('htmlContent') || ''
         };
 
         Object.keys(values).forEach(key => {
-            ELEMENTS[`${key}Input`].value = values[key];
+            if (key === 'htmlContent') {
+                ELEMENTS.textArea.value = values[key];
+            } else {
+                ELEMENTS[`${key}Input`].value = values[key];
+            }
         });
 
         updateOutputArea(values);
+        updateOutputMessage(); // メッセージの更新
     }
 
     // 現在の値を保存する
@@ -75,6 +82,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 localStorage.setItem(key.replace('Input', ''), ELEMENTS[key].value);
             }
         });
+
+        localStorage.setItem('htmlContent', getTextAreaContent());
+        updateOutputMessage(); // メッセージの更新
     }
 
     // 出力エリアを更新する
@@ -84,6 +94,20 @@ document.addEventListener('DOMContentLoaded', () => {
             <strong>タイトル:</strong> ${title}<br>
             <strong>プリヘッダー:</strong> ${preheader}<br>
         `;
+    }
+
+    // 出力メッセージを更新する
+    function updateOutputMessage() {
+        const htmlContent = localStorage.getItem('htmlContent');
+        // メッセージのリセット
+        ELEMENTS.outputArea.innerHTML = ELEMENTS.outputArea.innerHTML.split('<p style="color: green;">HTMLソースがセットされています</p>').shift();
+        ELEMENTS.outputArea.innerHTML = ELEMENTS.outputArea.innerHTML.split('<p style="color: red;">HTMLソース未設定</p>').shift();
+        // メッセージの追加
+        const message = htmlContent && htmlContent.trim() !== ''
+            ? '<p style="color: green;">HTMLソースがセットされています</p>'
+            : '<p style="color: red;">HTMLソース未設定</p>';
+
+        ELEMENTS.outputArea.innerHTML += message;
     }
 
     // チェックリストの項目を生成する
@@ -117,6 +141,8 @@ document.addEventListener('DOMContentLoaded', () => {
         Object.keys(ELEMENTS).forEach(key => {
             if (key.endsWith('Input')) {
                 ELEMENTS[key].value = '';
+            } else if (key === 'textArea') {
+                ELEMENTS[key].value = '';
             }
         });
 
@@ -126,24 +152,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         updateChecklist();
         toggleCheckboxes(false);
-        location.reload();
+        updateOutputMessage(); // メッセージの更新
     }
 
-    // 現在のページのソースコードを取得する
-    function getPageSourceCode(callback) {
-        chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
-            if (tabs.length > 0) {
-                chrome.scripting.executeScript(
-                    {
-                        target: { tabId: tabs[0].id },
-                        func: () => document.documentElement.innerHTML
-                    },
-                    results => callback(results?.[0]?.result ?? null)
-                );
-            } else {
-                callback(null);
-            }
-        });
+    // テキストエリアからHTMLソースを取得する関数
+    function getTextAreaContent() {
+        return ELEMENTS.textArea.value;
     }
 
     // メール用の申込番号の確認
@@ -277,22 +291,23 @@ document.addEventListener('DOMContentLoaded', () => {
     // 開封タグの確認
     function checkNoIndexOpenTag(pageSource) {
         const isMail = ELEMENTS.mailOption.checked;
-        const openTagPattern = /<custom\s+name=["']opencounter["']\s+type=["']tracking["']\s*>/i;
-        const bodyTagPattern = /<body\s+cz-shortcut-listen=["']true["']>/i;
+        // 正規化された開封タグのパターン（コメントアウトも含む）
+        const openTagPattern = /<!--\s*<custom\s+name=["']opencounter["']\s+type=["']tracking["']\s*(\/?)>\s*-->|<custom\s+name=["']opencounter["']\s+type=["']tracking["']\s*(\/?)>/i;
+        const bodyTagPattern = /<body>/i;
 
         if (isMail) {
-            // メール版では開封タグが必要
+            // メール版では <body> タグの直下に <custom name="opencounter" type="tracking" /> が必要
             const bodyTagMatch = pageSource.match(bodyTagPattern);
             if (bodyTagMatch) {
                 const bodyTagIndex = bodyTagMatch.index + bodyTagMatch[0].length;
                 const bodyContentAfterTag = pageSource.substring(bodyTagIndex);
 
-                // <body> タグの子要素として <custom name="opencounter" type="tracking"> が含まれているか確認
-                if (!openTagPattern.test(bodyContentAfterTag)) {
+                // コメントアウトされたタグも含めて、<body> タグの直下に開封タグがあるか確認
+                if (!/<custom\s+name=["']opencounter["']\s+type=["']tracking["']\s*(\/?)>/.test(bodyContentAfterTag.replace(/<!--.*?-->/g, ''))) {
                     return '・開封タグの位置を確認してください';
                 }
             } else {
-                return '・<body cz-shortcut-listen="true"> タグが存在しません';
+                return '・<body> タグが存在しません';
             }
         } else {
             // Web版では開封タグが不要
@@ -359,7 +374,6 @@ document.addEventListener('DOMContentLoaded', () => {
         alert(errors.length > 0 ? `チェックに失敗しました:\n${errors.sort().join('\n')}` : 'OKです!');
     }
 
-    // チェックされた項目を処理する
     function handleCheckSelected() {
         const selectedItems = document.querySelectorAll('#checklistArea input[type="checkbox"]:checked');
 
@@ -368,14 +382,16 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        getPageSourceCode(pageSource => {
-            if (pageSource) {
-                performChecks(pageSource);
-            } else {
-                alert('ページのソースコードを取得できませんでした。');
-            }
-        });
+        // テキストエリアの内容を取得
+        const pageSource = getTextAreaContent();
+
+        if (pageSource) {
+            performChecks(pageSource);
+        } else {
+            alert('チェック対象のHTMLが入力されていません。');
+        }
     }
+
 
     // イベントリスナーの設定
     ELEMENTS.setValuesButton.addEventListener('click', () => {
@@ -394,6 +410,8 @@ document.addEventListener('DOMContentLoaded', () => {
     ELEMENTS.checkAllButton.addEventListener('click', () => toggleCheckboxes(true));
     ELEMENTS.checkSelectedButton.addEventListener('click', handleCheckSelected);
     ELEMENTS.resetButton.addEventListener('click', resetForm);
+
+    ELEMENTS.textArea.addEventListener('input', updateOutputMessage); // 追加: テキストエリアの入力時にメッセージを更新
 
     loadValues();
     updateChecklist();

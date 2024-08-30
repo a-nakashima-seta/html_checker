@@ -112,3 +112,14 @@ h1.app-name {
 .button-group button {
     width: 48%;
 }
+
+textarea {
+    font-size: 14px;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+    width: 100%;
+    display: block;
+}
