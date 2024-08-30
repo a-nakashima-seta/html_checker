@@ -253,7 +253,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-
     // $$$utm_campaign$$$の確認
     function checkUTMCampaign(pageSource) {
         const pattern = /\$\$\$utm_campaign\$\$\$/;
@@ -319,6 +318,28 @@ document.addEventListener('DOMContentLoaded', () => {
         return null;
     }
 
+    // フッターの変数化チェック
+    function checkFooter(pageSource) {
+        const isMail = ELEMENTS.mailOption.checked;
+        const footerPatternMail = /お問い合わせは%%=TreatAsContent\(@contactlink\)=%%からお願いします。/;
+        const footerPatternWeb = /お問い合わせは<a href="https:\/\/www\.shizensyokuhin\.jp\/contact\/">こちら<\/a>からお願いします。/;
+
+        if (isMail) {
+            if (footerPatternMail.test(pageSource)) {
+                return null;
+            } else if (footerPatternWeb.test(pageSource)) {
+                return '・フッター変数が変数化されていません';
+            }
+        } else {
+            if (footerPatternWeb.test(pageSource)) {
+                return null;
+            } else if (footerPatternMail.test(pageSource)) {
+                return '・フッター変数が解除されていません';
+            }
+        }
+
+        return null;
+    }
 
     // チェックを実行する
     async function performChecks(pageSource) {
@@ -360,6 +381,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     case '開封タグはないか':
                         error = checkNoIndexOpenTag(pageSource);
                         break;
+                    case 'フッターが変数化されているか':
+                    case 'フッターが変数化されていないか':
+                        error = checkFooter(pageSource);
+                        break;
                     default:
                         break;
                 }
@@ -391,7 +416,6 @@ document.addEventListener('DOMContentLoaded', () => {
             alert('チェック対象のHTMLが入力されていません。');
         }
     }
-
 
     // イベントリスナーの設定
     ELEMENTS.setValuesButton.addEventListener('click', () => {
