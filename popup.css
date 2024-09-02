@@ -56,7 +56,7 @@ h1.app-name {
 .radio-group {
     display: flex;
     align-items: center;
-    margin: 20px 0;
+    margin: 10px 0;
 }
 
 .radio-group input[type="radio"] {

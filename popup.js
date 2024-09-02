@@ -129,6 +129,14 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateChecklist() {
         const checklistType = ELEMENTS.mailOption.checked ? 'mail' : 'web';
         ELEMENTS.checklistArea.innerHTML = `<ul>${generateChecklistItems(CHECKLIST_ITEMS[checklistType], checklistType)}</ul>`;
+
+        // Webオプションの表示制御とデフォルト選択の設定
+        if (ELEMENTS.webOption.checked) {
+            document.getElementById('webOptions').style.display = 'block';
+            document.getElementById('normalOption').checked = true; // デフォルトで通常を選択
+        } else {
+            document.getElementById('webOptions').style.display = 'none';
+        }
     }
 
     // チェックボックスの状態を変更する
@@ -389,6 +397,18 @@ document.addEventListener('DOMContentLoaded', () => {
         return preheaderPattern.test(pageSource) ? '・プリヘッダーを削除してください' : null;
     }
 
+    // ファビコンのチェック
+    function checkFavicon(pageSource) {
+        const isSEAC = document.getElementById('seacOption').checked;
+        const faviconPattern = isSEAC
+            ? /<link\s+rel=["']shortcut icon["']\s+href=["']\/excludes\/dmlite\/seac\/img\/common\/favicon\.ico["']\s*\/?>/i
+            : /<link\s+rel=["']shortcut icon["']\s+href=["']\/excludes\/dmlite\/favicon\.ico["']\s*\/?>/i;
+
+        return faviconPattern.test(pageSource)
+            ? null
+            : '・faviconの記述を確認してください';
+    }
+
 
 
 
@@ -444,6 +464,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         break;
                     case 'GTM用の記述があるか':
                         error = checkGTM(pageSource);
+                        break;
+                    case 'faviconは設定されているか':
+                        error = checkFavicon(pageSource);
                         break;
                     default:
                         break;

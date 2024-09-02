@@ -34,14 +34,15 @@
         <label for="webOption">Web確認用</label>
     </div>
 
-    <!-- Webオプション用の追加チェックボックス -->
     <div id="webOptions" style="display: none;">
-        <h3>Webオプション</h3>
-        <input type="radio" id="normalOption" name="webType" value="normal">
-        <label for="normalOption">通常</label>
-        <input type="radio" id="seacOption" name="webType" value="seac">
-        <label for="seacOption">SEAC</label>
+        <div class="radio-group">
+            <input type="radio" id="normalOption" name="webType" value="normal" checked>
+            <label for="normalOption">通常</label>
+            <input type="radio" id="seacOption" name="webType" value="seac">
+            <label for="seacOption">SEAC</label>
+        </div>
     </div>
+
 
     <div class="output" id="outputArea">
     </div>
