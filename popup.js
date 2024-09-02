@@ -2,7 +2,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // DOM要素を取得
     const ELEMENTS = {
         applicationNoInput: document.getElementById('applicationNo'),
-        applicationNoInput: document.getElementById('applicationNo'),
         preheaderInput: document.getElementById('preheader'),
         titleInput: document.getElementById('title'),
         setValuesButton: document.getElementById('setValues'),
@@ -10,9 +9,6 @@ document.addEventListener('DOMContentLoaded', () => {
         checklistArea: document.getElementById('checklistArea'),
         mailOption: document.getElementById('mailOption'),
         webOption: document.getElementById('webOption'),
-        extraCheckboxes: document.getElementById('extraCheckboxes'),
-        normalOption: document.getElementById('normalOption'),
-        seacOption: document.getElementById('seacOption'),
         checkAllButton: document.getElementById('checkAll'),
         checkSelectedButton: document.getElementById('checkSelected'),
         resetButton: document.getElementById('resetButton'),
@@ -90,6 +86,7 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('htmlContent', getTextAreaContent());
         updateOutputMessage(); // メッセージの更新
 
+        location.reload()
     }
 
     // 出力エリアを更新する
@@ -132,12 +129,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateChecklist() {
         const checklistType = ELEMENTS.mailOption.checked ? 'mail' : 'web';
         ELEMENTS.checklistArea.innerHTML = `<ul>${generateChecklistItems(CHECKLIST_ITEMS[checklistType], checklistType)}</ul>`;
-
-        if (checklistType === 'web') {
-            ELEMENTS.extraCheckboxes.style.display = 'block';
-        } else {
-            ELEMENTS.extraCheckboxes.style.display = 'none';
-        }
     }
 
     // チェックボックスの状態を変更する
@@ -494,7 +485,6 @@ document.addEventListener('DOMContentLoaded', () => {
             preheader: ELEMENTS.preheaderInput.value,
             title: ELEMENTS.titleInput.value
         });
-        location.reload()
     });
 
     document.querySelectorAll('input[name="checkType"]').forEach(radio => {
@@ -505,22 +495,7 @@ document.addEventListener('DOMContentLoaded', () => {
     ELEMENTS.checkSelectedButton.addEventListener('click', handleCheckSelected);
     ELEMENTS.resetButton.addEventListener('click', resetForm);
 
-    ELEMENTS.textArea.addEventListener('input', updateOutputMessage); // テキストエリアの入力時にメッセージを更新
-
-    // チェックボックスの状態を監視し、相互排他を実装
-    ELEMENTS.normalOption.addEventListener('change', () => {
-        if (ELEMENTS.normalOption.checked) {
-            ELEMENTS.seacOption.checked = false;
-            updateChecklist();
-        }
-    });
-
-    ELEMENTS.seacOption.addEventListener('change', () => {
-        if (ELEMENTS.seacOption.checked) {
-            ELEMENTS.normalOption.checked = false;
-            updateChecklist();
-        }
-    });
+    ELEMENTS.textArea.addEventListener('input', updateOutputMessage); // 追加: テキストエリアの入力時にメッセージを更新
 
     loadValues();
     updateChecklist();

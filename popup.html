@@ -34,17 +34,18 @@
         <label for="webOption">Web確認用</label>
     </div>
 
-    <div id="extraCheckboxes" class="extra-checkboxes">
-        <input type="checkbox" id="normalOption" />
+    <!-- Webオプション用の追加チェックボックス -->
+    <div id="webOptions" style="display: none;">
+        <h3>Webオプション</h3>
+        <input type="radio" id="normalOption" name="webType" value="normal">
         <label for="normalOption">通常</label>
-        <input type="checkbox" id="seacOption" />
+        <input type="radio" id="seacOption" name="webType" value="seac">
         <label for="seacOption">SEAC</label>
     </div>
 
     <div class="output" id="outputArea">
     </div>
 
-    <h3 style="margin-bottom: 0;">チェックリスト</h3>
     <div class="checklist" id="checklistArea">
     </div>
 
