@@ -44,7 +44,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 外部URLの正規表現
     const EXTERNAL_URL_REGEX = /^https?:\/\/(?!www\.shizensyokuhin\.jp)(?!shizensyokuhin\.jp)(?!www\.s-shizensyokuhin\.jp)(?!s-shizensyokuhin\.jp)/;
-    const SPECIAL_TEXT = '※画像がうまく表示されない方はこちらをご覧ください。';
 
     // IDをエスケープする関数
     function escapeId(id) {
@@ -72,7 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         updateOutputArea(values);
-        updateOutputMessage(); // メッセージの更新
+        updateOutputMessage();
     }
 
     // 現在の値を保存する
@@ -84,7 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         localStorage.setItem('htmlContent', getTextAreaContent());
-        updateOutputMessage(); // メッセージの更新
+        updateOutputMessage();
 
         location.reload()
     }
@@ -270,15 +269,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // 特殊テキストの確認
+    const SPECIAL_TEXT = '※画像が';
     function checkForSpecialText(pageSource) {
         const isMail = ELEMENTS.mailOption.checked;
-        const textPattern = new RegExp(SPECIAL_TEXT, 'i');
+        const textPattern = new RegExp(SPECIAL_TEXT, 'i'); // 大文字・小文字を区別しない
         const textExists = textPattern.test(pageSource);
 
+        // 部分一致で判定
         return isMail
-            ? textExists ? null : `・${SPECIAL_TEXT}を追加してください`
-            : textExists ? `・${SPECIAL_TEXT}は削除してください` : null;
+            ? textExists ? null : `・※画像がうまく表示されない方はこちらを追加してください`
+            : textExists ? `・※画像がうまく表示されない方はこちらは削除してください` : null;
     }
+
 
     // noindexメタタグの確認
     function checkNoIndexMetaTag(pageSource) {
@@ -300,9 +302,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // 開封タグの確認
     function checkNoIndexOpenTag(pageSource) {
         const isMail = ELEMENTS.mailOption.checked;
+
         // 正規化された開封タグのパターン（コメントアウトも含む）
         const openTagPattern = /<!--\s*<custom\s+name=["']opencounter["']\s+type=["']tracking["']\s*(\/?)>\s*-->|<custom\s+name=["']opencounter["']\s+type=["']tracking["']\s*(\/?)>/i;
-        const bodyTagPattern = /<body>/i;
+
+        // <body> タグのパターン、属性を含む可能性に対応
+        const bodyTagPattern = /<!--[\s\S]*?<\/body>|<body[^>]*>/i;
 
         if (isMail) {
             // メール版では <body> タグの直下に <custom name="opencounter" type="tracking" /> が必要
@@ -312,14 +317,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 const bodyContentAfterTag = pageSource.substring(bodyTagIndex);
 
                 // コメントアウトされたタグも含めて、<body> タグの直下に開封タグがあるか確認
-                if (!/<custom\s+name=["']opencounter["']\s+type=["']tracking["']\s*(\/?)>/.test(bodyContentAfterTag.replace(/<!--.*?-->/g, ''))) {
+                if (!/<custom\s+name=["']opencounter["']\s+type=["']tracking["']\s*(\/?)>/.test(bodyContentAfterTag.replace(/<!--[\s\S]*?-->/g, ''))) {
                     return '・開封タグの位置を確認してください';
                 }
             } else {
                 return '・<body> タグが存在しません';
             }
         } else {
-            // Web版では開封タグが不要
             if (openTagPattern.test(pageSource)) {
                 return '・開封タグは削除してください';
             }
@@ -327,6 +331,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         return null;
     }
+
 
     // フッターの変数化チェック
     function checkFooter(pageSource) {
@@ -375,19 +380,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // メール用のプリヘッダーの確認
     function checkMailPreheader(pageSource) {
-        const preheader = localStorage.getItem('preheader');
-        // プリヘッダーの前にある <p> タグを取得する正規表現
-        const preheaderPattern = /<p[^>]*>([\s\S]*?)<\/p>\s*<!--\s*▲\s*プリヘッダー\s*▲\s*-->/i;
-        const match = pageSource.match(preheaderPattern);
+        const preheader = localStorage.getItem('preheader').trim();
 
-        if (match) {
-            const actualPreheader = match[1].trim();
-            return preheader === actualPreheader
-                ? null
-                : '・プリヘッダーに誤りがあります';
-        } else {
-            return '・プリヘッダーが見つかりません';
-        }
+        // 保存されたプリヘッダーのテキストがページソース内に完全一致するか確認
+        const preheaderPattern = new RegExp(preheader.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+        const textExists = preheaderPattern.test(pageSource);
+
+
+
+        // プリヘッダーのテキストがページソース内に存在するか確認
+        return textExists
+            ? null
+            : '・プリヘッダーに誤りがあります'; // エラーメッセージを返す
     }
 
 
