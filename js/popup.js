@@ -485,8 +485,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     return;
                 }
 
-                // テキストエリアの内容を取得
-
+                // チェックの実行
                 if (pageSource) {
                     performChecks(pageSource);
                 } else {
