@@ -397,13 +397,28 @@ document.addEventListener('DOMContentLoaded', () => {
             // ファビコンのチェック
             function checkFavicon(pageSource) {
                 const isSEAC = document.getElementById('seacOption').checked;
+
+                // 通常のファビコンのパターン
                 const faviconPattern = isSEAC
                     ? /<link\s+rel=["']shortcut icon["']\s+href=["']\/excludes\/dmlite\/seac\/img\/common\/favicon\.ico["']\s*\/?>/i
                     : /<link\s+rel=["']shortcut icon["']\s+href=["']\/excludes\/dmlite\/favicon\.ico["']\s*\/?>/i;
 
-                return faviconPattern.test(pageSource)
-                    ? null
-                    : '・faviconの記述を確認してください';
+                // コメントアウトされたファビコンのパターン
+                const commentedFaviconPattern = isSEAC
+                    ? /<!--.*?<link\s+rel=["']shortcut icon["']\s+href=["']\/excludes\/dmlite\/seac\/img\/common\/favicon\.ico["']\s*\/?>.*?-->/i
+                    : /<!--.*?<link\s+rel=["']shortcut icon["']\s+href=["']\/excludes\/dmlite\/favicon\.ico["']\s*\/?>.*?-->/i;
+
+                // 通常のファビコンが存在するかチェック
+                const hasFavicon = faviconPattern.test(pageSource);
+                // コメントアウトされたファビコンが存在するかチェック
+                const hasCommentedFavicon = commentedFaviconPattern.test(pageSource);
+
+                // ファビコンが存在しない、またはコメントアウトされている場合にエラーを返す
+                if (!hasFavicon || hasCommentedFavicon) {
+                    return '・faviconの記述を確認してください';
+                }
+
+                return null;
             }
 
 
