@@ -8,12 +8,12 @@
     "default_popup": "popup.html"
   },
   "icons": {
-    "48": "checker48.png"
+    "48": "icon/checker48.png"
   },
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["popup.js"]
+      "js": ["js/popup.js"]
     }
   ]
 }
