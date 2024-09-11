@@ -163,7 +163,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Web用の申込番号の確認
             function checkWebApplicationNo(pageSource) {
                 const applicationNo = localStorage.getItem('applicationNo');
-                const pattern = new RegExp(`SET @application_no = '${applicationNo}'`);
+                const pattern = new RegExp(`SET @application_no = '`);
                 return !pattern.test(pageSource) ? null : '・冒頭変数を削除してください';
             }
 
