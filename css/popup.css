@@ -123,3 +123,12 @@ textarea {
     width: 100%;
     display: block;
 }
+
+#copyAndOpenPageButton {
+    display: block;
+    background-color: #155fc0;
+    width: 65%;
+    font-size: 14px;
+    margin: 0 0 0 auto;
+    margin-bottom: 4%;
+}

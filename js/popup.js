@@ -28,6 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 checkSelectedButton: document.getElementById('checkSelected'),
                 resetButton: document.getElementById('resetButton'),
                 textArea: document.getElementById('textArea'),
+                copyToClipboardButton: document.getElementById('copyToClipboard')
             };
 
             // チェックリストの項目
@@ -526,6 +527,18 @@ document.addEventListener('DOMContentLoaded', () => {
             ELEMENTS.checkAllButton.addEventListener('click', () => toggleCheckboxes(true));
             ELEMENTS.checkSelectedButton.addEventListener('click', handleCheckSelected);
             ELEMENTS.resetButton.addEventListener('click', resetForm);
+
+            // クリップボードにコピーし、特定のページを別タブで開くボタンのイベントリスナー
+            document.getElementById('copyAndOpenPageButton').addEventListener('click', () => {
+                navigator.clipboard.writeText(pageSource)
+                    .then(() => {
+                        alert('HTMLをコピーしました。');
+                        chrome.tabs.create({ url: 'https://form.submitmail.jp/tools/check/' });
+                    })
+                    .catch(err => {
+                        alert('HTMLのコピーに失敗しました。', err);
+                    });
+            });
 
 
             loadValues();
