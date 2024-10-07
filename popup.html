@@ -1,5 +1,6 @@
+<!-- popup.html -->
 <!DOCTYPE html>
-<html>
+<html lang="ja">
 
 <head>
     <meta charset="UTF-8">
@@ -11,44 +12,70 @@
     <h1 class="app-name">HTML Checker</h1>
 
     <div>
-        <label for="applicationNo">申込番号:</label>
-        <input type="text" id="applicationNo">
-        <label for="title">タイトル:</label>
-        <input type="text" id="title">
-        <label for="preheader">プリヘッダー:</label>
-        <input type="text" id="preheader">
-        <button id="setValues">値をセットする</button>
-    </div>
+        <label for="inputText">情報を入力してください (申込番号, タイトル, プリヘッダー):</label>
+        <textarea id="inputText" rows="3" placeholder="申込番号, タイトル, プリヘッダーを改行で入力"></textarea>
 
-    <button id="resetButton">リセット</button>
+        <div class="setButtonWrap">
+            <button id="setValues">値をセットする</button>
+            <!-- <button id="resetButton">リセット</button> -->
+        </div>
 
-    <div class="radio-group">
-        <input type="radio" id="mailOption" name="checkType" value="mail" checked />
-        <label for="mailOption">Mail用</label>
-        <input type="radio" id="webOption" name="checkType" value="web" />
-        <label for="webOption">Web確認用</label>
-    </div>
+        <div id="infoArea" style="display: none;">
+            <div class="editArea">
+                <h4>申込番号:</h4>
+                <p class="editAreaWrap">
+                    <span id="displayApplicationNo"></span>
+                    <button class="editButton" id="editApplicationNo">編集</button>
+                </p>
+            </div>
+            <div class="editArea">
+                <h4>タイトル:</h4>
+                <p class="editAreaWrap">
+                    <span id="displayTitle"></span>
+                    <button class="editButton" id="editTitle">編集</button>
+                </p>
+            </div>
 
-    <div id="webOptions" style="display: none;">
-        <div class="radio-group">
-            <input type="radio" id="normalOption" name="webType" value="normal" checked>
-            <label for="normalOption">通常</label>
-            <input type="radio" id="seacOption" name="webType" value="seac">
-            <label for="seacOption">SEAC</label>
+            <div class="editArea">
+                <h4>プリヘッダー:</h4>
+                <p class="editAreaWrap">
+                    <span id="displayPreheader"></span>
+                    <button class="editButton" id="editPreheader">編集</button>
+                </p>
+            </div>
         </div>
     </div>
 
 
-    <div class="output" id="outputArea">
+    <div class="checkListWrap">
+        <div class="mail-check">
+            <h2>Mail用チェックリスト</h2>
+            <input type="file" id="mailFileInput" />
+            <div class="checklist" id="checklistAreaMail"></div>
+            <button id="mailCheckButton">チェック</button>
+        </div>
+
+        <div class="web-check">
+            <h2>Web用チェックリスト</h2>
+            <input type="url" id="webUrlInput" placeholder="URLを入力" />
+            <div class="webOptionWrap">
+                <div class="webOptioinBox">
+                    <input type="radio" id="webNormal">
+                    <label for="webNormal">通常</label>
+                </div>
+                <div class="webOptioinBox">
+                    <input type="radio" id="webSEAC">
+                    <label for="webSEAC">SEAC</label>
+                </div>
+            </div>
+
+
+            <div class="checklist" id="checklistAreaWeb"></div>
+            <!-- <button id="copyAndOpenPageButton">機種依存文字チェック</button> -->
+            <button id="webCheckButton">チェック</button>
+        </div>
     </div>
 
-    <button id="copyAndOpenPageButton">機種依存文字チェック</button>
-    <div class="checklist" id="checklistArea">
-    </div>
-
-
-    <button id="checkSelected">選択した項目をチェック</button>
-    <button id="checkAll">全てチェック</button>
 
     <script src="js/popup.js" defer></script>
 </body>

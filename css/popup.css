@@ -1,9 +1,10 @@
 body {
-    width: 320px;
+    width: 100%;
+    max-width: 800px;
     padding: 20px;
     font-family: Arial, sans-serif;
     background-color: #f4f4f4;
-    margin: 0;
+    margin: 0 auto;
     box-sizing: border-box;
 }
 
@@ -15,22 +16,71 @@ button {
     border-radius: 4px;
     cursor: pointer;
     font-size: 16px;
-    margin-top: 10px;
     width: 100%;
     box-sizing: border-box;
+    display: block;
+    max-width: 160px;
 }
 
 button:hover {
     background-color: #387F39;
 }
 
+.setButtonWrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2%;
+    margin: 20px auto;
+}
+
+button#setValues,
+button#resetButton {
+    display: block;
+}
+
+button#setValues {}
+
 button#resetButton {
     background-color: #ff8c2d;
-    margin-bottom: 15px;
 }
 
 button#resetButton:hover {
     background-color: #ff8c2d;
+}
+
+#infoArea {
+    background-color: #FFFFFF;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 1px 1px 13px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+.editArea h4 {
+    margin: 0;
+}
+
+.editAreaWrap {
+    display: flex;
+    justify-content: space-between;
+    margin: 0 auto;
+    padding-bottom: 9px;
+    margin-bottom: 5px;
+    border-bottom: solid 1px #ccc;
+    align-items: flex-end;
+}
+
+.editButton {
+    display: block;
+    width: min(6vw, 70px);
+    font-size: 14px;
+    margin: 0;
+    padding: 7px 0;
+}
+
+#displayTitle {
+    max-width: 600px;
 }
 
 label {
@@ -78,19 +128,35 @@ h1.app-name {
     margin-bottom: 20px;
 }
 
+.webOptionWrap {
+    display: flex;
+    align-items: center;
+}
+
+.webOptioinBox {
+    display: flex;
+    align-items: center;
+}
+
 .output strong {
     display: block;
     margin-bottom: 5px;
     color: #333;
 }
 
+.checkListWrap {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 5%;
+}
+
 .checklist {
     padding: 15px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
+    border-radius: 5px;
     background-color: #fff;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    margin-bottom: 20px;
+    box-shadow: 1px 1px 13px rgba(0, 0, 0, 0.1);
+    margin: 15px 0 20px;
 }
 
 .checklist ul {
